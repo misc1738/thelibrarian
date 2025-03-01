@@ -46,7 +46,7 @@ export function Header() {
             <path d="M21 8H11C9.9 8 9 8.9 9 10V22C9 23.1 9.9 24 11 24H21C22.1 24 23 23.1 23 22V10C23 8.9 22.1 8 21 8ZM11 10H16V16H11V10ZM11 18H16V22H11V18ZM21 22H17V18H21V22ZM21 16H17V10H21V16Z" fill="white" />
           </svg>
         </div>
-        <span className="font-display text-xl font-medium">LibraNavi</span>
+        <span className="font-display text-xl font-medium">TheLibrarian</span>
       </Link>
       
       <div className="flex-1 md:ml-10">
