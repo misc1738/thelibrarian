@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "@/components/layout/Header";
@@ -20,7 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowUpRight, RotateCw, Calendar, XCircle, Clock, ArrowRight, UserRoundSearch, BookSearch } from "lucide-react";
+import {
+  ArrowUpRight,
+  RotateCw,
+  Calendar,
+  XCircle,
+  Clock,
+  ArrowRight,
+  UserRoundSearch,
+  BookOpen,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -148,7 +156,7 @@ const Circulation = () => {
                         Select Book
                       </label>
                       <div className="relative">
-                        <BookSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <BookOpen className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Select value={selectedBook} onValueChange={setSelectedBook}>
                           <SelectTrigger className="pl-10">
                             <SelectValue placeholder="Select book" />
