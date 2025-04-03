@@ -1,48 +1,25 @@
 
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Header } from "@/components/layout/Header";
 import { AppSidebar } from "@/components/layout/Sidebar";
-import { books, recentActivities } from "@/lib/data";
+import { books, statusIcons } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  BookOpen,
-  Calendar,
-  ArrowLeft,
-  Star,
-  User,
-  BookmarkPlus,
-  Share2,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { CalendarDays, ChevronLeft, Download, Clock, User, BookOpen, Share2, Bookmark, ThumbsUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 const BookDetails = () => {
-  const { id } = useParams();
-  const { toast } = useToast();
+  const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("details");
   
+  // Find the book with the matching ID
   const book = books.find((b) => b.id === id);
-  
+
   if (!book) {
     return (
       <SidebarProvider>
@@ -51,17 +28,22 @@ const BookDetails = () => {
           <div className="flex w-full flex-col">
             <Header />
             <main className="flex-1 p-6 lg:p-8">
-              <div className="flex flex-col items-center justify-center h-[60vh]">
-                <h2 className="text-xl font-semibold">Book not found</h2>
-                <p className="text-muted-foreground mt-2">
-                  We couldn't find the book you're looking for.
-                </p>
-                <Button asChild className="mt-4">
-                  <Link to="/books">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Books
-                  </Link>
-                </Button>
+              <div className="space-y-8">
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/books">
+                      <ChevronLeft className="h-4 w-4 mr-2" />
+                      Back to Books
+                    </Link>
+                  </Button>
+                </div>
+                <div className="flex flex-col items-center justify-center p-12 text-center">
+                  <h2 className="text-2xl font-bold mb-2">Book Not Found</h2>
+                  <p className="text-muted-foreground mb-6">The book you're looking for doesn't exist.</p>
+                  <Button asChild>
+                    <Link to="/books">Browse Books</Link>
+                  </Button>
+                </div>
               </div>
             </main>
           </div>
@@ -69,19 +51,23 @@ const BookDetails = () => {
       </SidebarProvider>
     );
   }
-  
-  // Get book activities from recent activities
-  const bookActivities = recentActivities.filter(
-    (activity) => activity.bookTitle === book.title
-  );
-  
+
+  const StatusIcon = statusIcons[book.status];
+
+  const handleCheckout = () => {
+    toast({
+      title: "Book Checked Out",
+      description: `You have successfully checked out "${book.title}"`,
+    });
+  };
+
   const handleReserve = () => {
     toast({
       title: "Book Reserved",
-      description: `You've successfully reserved "${book.title}"`,
+      description: `You have successfully reserved "${book.title}"`,
     });
   };
-  
+
   const handleAddToList = () => {
     toast({
       title: "Added to Reading List",
@@ -97,224 +83,247 @@ const BookDetails = () => {
           <Header />
           <main className="flex-1 p-6 lg:p-8">
             <div className="space-y-8">
-              <div>
-                <Link 
-                  to="/books" 
-                  className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/books">
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Back to Books
+                  </Link>
+                </Button>
+                <Badge 
+                  variant={book.status === 'available' ? 'default' : 
+                         book.status === 'checked-out' ? 'destructive' : 
+                         book.status === 'reserved' ? 'secondary' : 'outline'}
+                  className="capitalize"
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Books
-                </Link>
-                <h1 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-                  {book.title}
-                </h1>
-                <p className="text-muted-foreground">by {book.author}</p>
+                  <StatusIcon className="mr-1 h-3 w-3" />
+                  {book.status.replace('-', ' ')}
+                </Badge>
               </div>
               
-              <div className="grid gap-8 md:grid-cols-[1fr_2fr]">
-                <Card className="overflow-hidden animate-fade-in">
-                  <div className="aspect-[2/3] w-full overflow-hidden">
-                    <img
-                      src={book.coverImage}
-                      alt={book.title}
-                      className="h-full w-full object-cover"
-                    />
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <div className="aspect-[2/3] w-full overflow-hidden rounded-lg bg-muted md:col-span-1">
+                  <img
+                    src={book.coverImage}
+                    alt={book.title}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                
+                <div className="space-y-6 md:col-span-2">
+                  <div>
+                    <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">{book.title}</h1>
+                    <p className="text-lg text-muted-foreground">by {book.author}</p>
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge 
-                        variant={book.status === 'available' ? 'success' : 
-                                book.status === 'checked-out' ? 'destructive' : 
-                                book.status === 'reserved' ? 'warning' : 'default'}
-                        className="capitalize"
-                      >
-                        {book.status.replace('-', ' ')}
-                      </Badge>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={cn(
-                              "h-4 w-4",
-                              star <= 4 ? "fill-amber-400 text-amber-400" : "text-gray-300"
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 text-sm">
-                        <span className="text-muted-foreground">ISBN:</span>
-                        <span className="font-mono">{book.isbn}</span>
-                      </div>
-                      <div className="grid grid-cols-2 text-sm">
-                        <span className="text-muted-foreground">Publisher:</span>
-                        <span>{book.publisher}</span>
-                      </div>
-                      <div className="grid grid-cols-2 text-sm">
-                        <span className="text-muted-foreground">Published:</span>
-                        <span>{book.publishedYear}</span>
-                      </div>
-                      <div className="grid grid-cols-2 text-sm">
-                        <span className="text-muted-foreground">Category:</span>
-                        <span>{book.category}</span>
-                      </div>
-                      {book.dueDate && (
-                        <div className="grid grid-cols-2 text-sm">
-                          <span className="text-muted-foreground">Due Date:</span>
-                          <span className="text-rose-500">{new Date(book.dueDate).toLocaleDateString()}</span>
-                        </div>
+                  
+                  <div className="flex flex-wrap gap-3">
+                    <Button onClick={book.status === 'available' ? handleCheckout : handleReserve}>
+                      {book.status === 'available' ? (
+                        <>
+                          <BookOpen className="mr-2 h-4 w-4" />
+                          Check Out
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="mr-2 h-4 w-4" />
+                          {book.status === 'reserved' ? 'Cancel Reservation' : 'Reserve'}
+                        </>
                       )}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex flex-col gap-2 border-t p-6">
-                    <Button 
-                      className="w-full gap-2"
-                      disabled={book.status !== 'available'}
-                      onClick={handleReserve}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      {book.status === 'available' ? 'Reserve This Book' : 'Not Available'}
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full gap-2"
-                      onClick={handleAddToList}
-                    >
-                      <BookmarkPlus className="h-4 w-4" />
-                      Add to Reading List
+                    <Button variant="outline" onClick={handleAddToList}>
+                      <Bookmark className="mr-2 h-4 w-4" />
+                      Add to List
                     </Button>
-                    <Button variant="ghost" className="w-full gap-2">
-                      <Share2 className="h-4 w-4" />
+                    <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Preview
+                    </Button>
+                    <Button variant="outline">
+                      <Share2 className="mr-2 h-4 w-4" />
                       Share
                     </Button>
-                  </CardFooter>
-                </Card>
-                
-                <div className="space-y-6">
+                  </div>
+                  
                   <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList>
                       <TabsTrigger value="details">Details</TabsTrigger>
-                      <TabsTrigger value="summary">Summary</TabsTrigger>
+                      <TabsTrigger value="reviews">Reviews</TabsTrigger>
                       <TabsTrigger value="history">History</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="details" className="mt-6 space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>About this Book</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <p>
-                            {book.title} is a {book.category.toLowerCase()} book written by {book.author} and published by {book.publisher} in {book.publishedYear}.
-                          </p>
-                          <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
-                            auctor, nisl eget ultricies aliquam, nunc nisl aliquet nunc,
-                            eget aliquam nisl nunc eget nisl. Nullam auctor, nisl eget
-                            ultricies aliquam, nunc nisl aliquet nunc, eget aliquam nisl
-                            nunc eget nisl.
-                          </p>
-                          <p>
-                            Sed do eiusmod tempor incididunt ut labore et dolore magna
-                            aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                            ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                          </p>
-                        </CardContent>
-                      </Card>
+                    <TabsContent value="details" className="space-y-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium">Publication Details</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <dl className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Publisher:</dt>
+                                <dd>{book.publisher}</dd>
+                              </div>
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Published Year:</dt>
+                                <dd>{book.publishedYear}</dd>
+                              </div>
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">ISBN:</dt>
+                                <dd>{book.isbn}</dd>
+                              </div>
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Category:</dt>
+                                <dd>{book.category}</dd>
+                              </div>
+                            </dl>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium">Availability</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <dl className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Status:</dt>
+                                <dd className="capitalize">{book.status.replace('-', ' ')}</dd>
+                              </div>
+                              {book.dueDate && (
+                                <div className="flex justify-between">
+                                  <dt className="text-muted-foreground">Due Date:</dt>
+                                  <dd>{book.dueDate}</dd>
+                                </div>
+                              )}
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Location:</dt>
+                                <dd>Section B, Shelf 12</dd>
+                              </div>
+                              <div className="flex justify-between">
+                                <dt className="text-muted-foreground">Copies Available:</dt>
+                                <dd>{book.status === 'available' ? '1' : '0'} of 1</dd>
+                              </div>
+                            </dl>
+                          </CardContent>
+                        </Card>
+                      </div>
                       
                       <Card>
-                        <CardHeader>
-                          <CardTitle>Subject Classification</CardTitle>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">Description</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline">
-                              {book.category}
-                            </Badge>
-                            <Badge variant="outline">
-                              Literature
-                            </Badge>
-                            <Badge variant="outline">
-                              Non-fiction
-                            </Badge>
-                            <Badge variant="outline">
-                              Educational
-                            </Badge>
-                          </div>
+                          <p className="text-sm">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nunc sit amet aliquam
+                            tincidunt, nisl nunc tincidunt nisl, eget aliquam nisl nunc sit amet nisl. Sed euismod, nunc sit
+                            amet aliquam tincidunt, nisl nunc tincidunt nisl, eget aliquam nisl nunc sit amet nisl.
+                          </p>
                         </CardContent>
                       </Card>
                     </TabsContent>
                     
-                    <TabsContent value="summary" className="mt-6">
+                    <TabsContent value="reviews">
                       <Card>
                         <CardHeader>
-                          <CardTitle>Book Summary</CardTitle>
+                          <CardTitle>Reader Reviews</CardTitle>
+                          <CardDescription>See what other readers think about this book</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                          <p>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
-                            auctor, nisl eget ultricies aliquam, nunc nisl aliquet nunc,
-                            eget aliquam nisl nunc eget nisl. Nullam auctor, nisl eget
-                            ultricies aliquam, nunc nisl aliquet nunc, eget aliquam nisl
-                            nunc eget nisl.
-                          </p>
-                          <p>
-                            Sed do eiusmod tempor incididunt ut labore et dolore magna
-                            aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                            ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis
-                            aute irure dolor in reprehenderit in voluptate velit esse
-                            cillum dolore eu fugiat nulla pariatur.
-                          </p>
-                          <p>
-                            Excepteur sint occaecat cupidatat non proident, sunt in culpa
-                            qui officia deserunt mollit anim id est laborum. Lorem ipsum
-                            dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                            tempor incididunt ut labore et dolore magna aliqua.
-                          </p>
+                          <div className="space-y-4">
+                            <div className="flex items-start gap-4 pb-4 border-b">
+                              <div className="rounded-full bg-muted h-10 w-10 flex items-center justify-center">
+                                <User className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold">Alex Johnson</h4>
+                                  <div className="flex items-center">
+                                    {[1, 2, 3, 4].map((star) => (
+                                      <ThumbsUp key={star} className="h-3 w-3 fill-primary text-primary" />
+                                    ))}
+                                    <ThumbsUp className="h-3 w-3 text-muted-foreground" />
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  <CalendarDays className="inline h-3 w-3 mr-1" />
+                                  June 2, 2024
+                                </p>
+                                <p className="text-sm">
+                                  Great book! I couldn't put it down once I started reading.
+                                  The characters are well-developed and the plot keeps you engaged.
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-start gap-4">
+                              <div className="rounded-full bg-muted h-10 w-10 flex items-center justify-center">
+                                <User className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold">Maria Garcia</h4>
+                                  <div className="flex items-center">
+                                    {[1, 2, 3].map((star) => (
+                                      <ThumbsUp key={star} className="h-3 w-3 fill-primary text-primary" />
+                                    ))}
+                                    {[1, 2].map((star) => (
+                                      <ThumbsUp key={star} className="h-3 w-3 text-muted-foreground" />
+                                    ))}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  <CalendarDays className="inline h-3 w-3 mr-1" />
+                                  May 28, 2024
+                                </p>
+                                <p className="text-sm">
+                                  It was a decent read but I expected more from the ending.
+                                  The first half of the book was much stronger than the second half.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <Button variant="outline" className="w-full">
+                            Read All Reviews
+                          </Button>
                         </CardContent>
                       </Card>
                     </TabsContent>
                     
-                    <TabsContent value="history" className="mt-6">
+                    <TabsContent value="history">
                       <Card>
                         <CardHeader>
                           <CardTitle>Circulation History</CardTitle>
-                          <CardDescription>Recent activity for this book</CardDescription>
+                          <CardDescription>Past checkouts and reservations</CardDescription>
                         </CardHeader>
                         <CardContent>
-                          {bookActivities.length > 0 ? (
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Action</TableHead>
-                                  <TableHead>Patron</TableHead>
-                                  <TableHead>Date & Time</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {bookActivities.map((activity) => (
-                                  <TableRow key={activity.id}>
-                                    <TableCell className="capitalize">{activity.action}</TableCell>
-                                    <TableCell>
-                                      <div className="flex items-center gap-2">
-                                        <User className="h-4 w-4" />
-                                        {activity.patronName}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>{new Date(activity.timestamp).toLocaleString()}</TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          ) : (
-                            <div className="py-8 text-center">
-                              <BookOpen className="mx-auto h-8 w-8 text-muted-foreground" />
-                              <p className="mt-2 text-sm text-muted-foreground">
-                                No recent activity for this book
-                              </p>
+                          <div className="space-y-4">
+                            <div className="border-l-2 border-muted pl-4 space-y-1">
+                              <div className="flex items-center gap-2 text-sm font-medium">
+                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                May 15, 2024
+                              </div>
+                              <p className="text-sm">Checked out by patron #3642</p>
+                              <p className="text-xs text-muted-foreground">Returned on May 29, 2024</p>
                             </div>
-                          )}
+                            
+                            <div className="border-l-2 border-muted pl-4 space-y-1">
+                              <div className="flex items-center gap-2 text-sm font-medium">
+                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                April 3, 2024
+                              </div>
+                              <p className="text-sm">Checked out by patron #2195</p>
+                              <p className="text-xs text-muted-foreground">Returned on April 17, 2024</p>
+                            </div>
+                            
+                            <div className="border-l-2 border-muted pl-4 space-y-1">
+                              <div className="flex items-center gap-2 text-sm font-medium">
+                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                March 10, 2024
+                              </div>
+                              <p className="text-sm">Checked out by patron #4018</p>
+                              <p className="text-xs text-muted-foreground">Returned on March 24, 2024</p>
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </TabsContent>

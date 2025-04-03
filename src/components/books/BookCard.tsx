@@ -26,9 +26,9 @@ export function BookCard({ book }: BookCardProps) {
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <Badge 
-            variant={book.status === 'available' ? 'success' : 
+            variant={book.status === 'available' ? 'default' : 
                    book.status === 'checked-out' ? 'destructive' : 
-                   book.status === 'reserved' ? 'warning' : 'default'}
+                   book.status === 'reserved' ? 'secondary' : 'outline'}
             className="capitalize"
           >
             <StatusIcon className="mr-1 h-3 w-3" />

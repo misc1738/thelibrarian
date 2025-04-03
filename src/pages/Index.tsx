@@ -6,6 +6,8 @@ import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { BookTrends } from "@/components/dashboard/BookTrends";
 import { BookCard } from "@/components/books/BookCard";
+import { ReadingTimer } from "@/components/reading-tools/ReadingTimer";
+import { BookRecommendations } from "@/components/books/BookRecommendations";
 import { books } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
@@ -33,21 +35,29 @@ const Dashboard = () => {
                 <BookTrends />
                 <RecentActivity />
               </div>
+
+              <BookRecommendations />
               
-              <div>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="scroll-m-20 text-xl font-semibold tracking-tight">Featured Books</h2>
-                  <Button variant="ghost" size="sm" asChild className="gap-1">
-                    <Link to="/books">
-                      View all books
-                      <ChevronRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="md:col-span-2">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h2 className="scroll-m-20 text-xl font-semibold tracking-tight">Featured Books</h2>
+                    <Button variant="ghost" size="sm" asChild className="gap-1">
+                      <Link to="/books">
+                        View all books
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                    {featuredBooks.slice(0, 3).map((book) => (
+                      <BookCard key={book.id} book={book} />
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                  {featuredBooks.map((book) => (
-                    <BookCard key={book.id} book={book} />
-                  ))}
+                
+                <div>
+                  <ReadingTimer />
                 </div>
               </div>
             </div>
